@@ -1,0 +1,14 @@
+# Ignore contents of specific folders
+palletjack_sdg/*/
+kitchenware_sdg/*/
+assets/*/
+
+# Don't ignore the folders themselves
+!palletjack_sdg/
+!kitchenware_sdg/
+!assets/
+
+# Don't ignore other files directly under these folders
+!palletjack_sdg/*
+!kitchenware_sdg/*
+!assets/*
