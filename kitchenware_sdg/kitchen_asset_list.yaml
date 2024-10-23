@@ -1,0 +1,14 @@
+kitchen_assets:
+  - ../assets/SNS_3DAssets/bottle_mesh/salad oil/cook_oil.usdc
+  - ../assets/SNS_3DAssets/bottle_mesh/seasoning/seasoning.usdc
+  - ../assets/SNS_3DAssets/bottle_mesh/soy sauce/soysauce.usdc
+  - ../assets/SNS_3DAssets/storage_table.usd
+  - ../assets/SNS_3DAssets/tableware/Collected_EastRural_Table/EastRural_Table.usd
+  - ../assets/SNS_3DAssets/tableware/Collected_EastRural_Table_ref/EastRural_Table.usd
+  - ../assets/SNS_3DAssets/tableware/Collected_Fork_Big/Fork_Big.usd
+  - ../assets/SNS_3DAssets/tableware/Collected_Fork_Small/Fork_Small.usd
+  - ../assets/SNS_3DAssets/tableware/Collected_Knife/Knife.usd
+  - ../assets/SNS_3DAssets/tableware/Collected_Spoon_Big/Spoon_Big.usd
+  - ../assets/SNS_3DAssets/tableware/Collected_Spoon_Small/Spoon_Small.usd
+  - ../assets/SNS_3DAssets/UtensilLadle.usd
+

@@ -32,10 +32,15 @@ parser.add_argument("--width", type=int, default=960, help="Width of image")
 parser.add_argument("--num_frames", type=int, default=1000, help="Number of frames to record")
 parser.add_argument("--distractors", type=str, default="warehouse", 
                     help="Options are 'warehouse' (default), 'additional' or None")
-parser.add_argument("--data_dir", type=str, default=os.getcwd() + "/_palletjack_data", 
+parser.add_argument("--ws_dir", type=str, default=os.getcwd(), 
+                    help="Workspace directory")
+parser.add_argument("--data_dir", type=str, default=os.getcwd() + "/_kitchenware_data", 
                     help="Location where data will be output")
 
 args, unknown_args = parser.parse_known_args()
+
+# print the args
+print(f'args: {args}')
 
 # This is the config used to launch simulation. 
 CONFIG = {"renderer": "RayTracedLighting", "headless": args.headless, 
@@ -48,6 +53,7 @@ simulation_app = SimulationApp(launch_config=CONFIG)
 ENV_URL = "/Isaac/Environments/Simple_Warehouse/warehouse.usd"
 
 import carb
+import yaml
 import omni
 import omni.usd
 from omni.isaac.nucleus import get_assets_root_path
@@ -58,26 +64,19 @@ import Semantics
 import omni.replicator.core as rep
 
 from omni.isaac.core.utils.semantics import get_semantics
-# # show the pxr path and terminate here
-# import sys
-# print(f'sys.path: {sys.path}')
-# print(f'omni.__file__: {omni.__file__}')
-# print(f'omni.usd.__file__: {omni.usd.__file__}')
-# print(f'get_assets_root_path: {get_assets_root_path()}')
-# print(f'Semantics: {Semantics}')
-# print(f'omni.replicator.core.__file__: {omni.replicator.core.__file__}')
-# exit()
 
-# Increase subframes if shadows/ghosting appears of moving objects
-# See known issues: https://docs.omniverse.nvidia.com/prod_extensions/prod_extensions/ext_replicator.html#known-issues
-# rep.settings.carb_settings("/omni/replicator/RTSubframes", 4)     # this has been replaced with the trigger.on_frame()
 
 
 # This is the location of the palletjacks in the simready asset library
-PALLETJACKS = ["http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/DigitalTwin/Assets/Warehouse/Equipment/Pallet_Trucks/Scale_A/PalletTruckScale_A01_PR_NVD_01.usd",
-            "http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/DigitalTwin/Assets/Warehouse/Equipment/Pallet_Trucks/Heavy_Duty_A/HeavyDutyPalletTruck_A01_PR_NVD_01.usd",
-            "http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/DigitalTwin/Assets/Warehouse/Equipment/Pallet_Trucks/Low_Profile_A/LowProfilePalletTruck_A01_PR_NVD_01.usd"]
-
+# PALLETJACKS = ["http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/DigitalTwin/Assets/Warehouse/Equipment/Pallet_Trucks/Scale_A/PalletTruckScale_A01_PR_NVD_01.usd",
+#             "http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/DigitalTwin/Assets/Warehouse/Equipment/Pallet_Trucks/Heavy_Duty_A/HeavyDutyPalletTruck_A01_PR_NVD_01.usd",
+#             "http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/DigitalTwin/Assets/Warehouse/Equipment/Pallet_Trucks/Low_Profile_A/LowProfilePalletTruck_A01_PR_NVD_01.usd"]
+KITCHEN_ASSETS_LIST_PATH = args.ws_dir + "/kitchen_asset_list.yaml"
+KITCHEN_ASSETS_LIST = yaml.load(open(KITCHEN_ASSETS_LIST_PATH), Loader=yaml.FullLoader)
+# append the workspace directory to the kitchenware asset paths
+KITCHEN_ASSETS_LIST = [args.ws_dir + "/" + kitchenware_path for kitchenware_path in KITCHEN_ASSETS_LIST]
+print(f"KITCHEN_ASSETS_LIST: {KITCHEN_ASSETS_LIST}")
+exit()
 
 # The warehouse distractors which will be added to the scene and randomized
 DISTRACTORS_WAREHOUSE = 2 * ["/Isaac/Environments/Simple_Warehouse/Props/S_TrafficCone.usd",
@@ -247,10 +246,10 @@ def full_textures_list():
     return full_tex_list
 
 
-def add_palletjacks():
-    rep_obj_list = [rep.create.from_usd(palletjack_path, semantics=[("class", "palletjack")], count=2) for palletjack_path in PALLETJACKS]
-    rep_palletjack_group = rep.create.group(rep_obj_list)
-    return rep_palletjack_group
+def add_kitchenware():
+    rep_obj_list = [rep.create.from_usd(kitchenware_path, semantics=[("class", "kitchenware")], count=2) for kitchenware_path in KITCHEN_ASSETS_LIST]
+    rep_kitchenware_group = rep.create.group(rep_obj_list)
+    return rep_kitchenware_group
 
 
 def add_distractors(distractor_type="warehouse"):
@@ -291,11 +290,11 @@ def main():
 
 
     textures = full_textures_list()
-    rep_palletjack_group = add_palletjacks()
+    rep_kitchenware_group = add_kitchenware()
     rep_distractor_group = add_distractors(distractor_type=args.distractors)
 
-    # We only need labels for the palletjack objects
-    update_semantics(stage=stage, keep_semantics=["palletjack"])
+    # We only need labels for the kitchenware objects
+    update_semantics(stage=stage, keep_semantics=["kitchenware"])
 
     # Create camera with Replicator API for gathering data
     cam = rep.create.camera(clipping_range=(0.1, 1000000))
@@ -308,12 +307,12 @@ def main():
             rep.modify.pose(position=rep.distribution.uniform((-9.2, -11.8, 0.4), (7.2, 15.8, 4)),
                             look_at=(0, 0, 0))
 
-        # Get the Palletjack body mesh and modify its color
+        # Get the Kitchenware body mesh and modify its color
         with rep.get.prims(path_pattern="SteerAxles"):
             rep.randomizer.color(colors=rep.distribution.uniform((0, 0, 0), (1, 1, 1)))
 
-        # Randomize the pose of all the added palletjacks
-        with rep_palletjack_group:
+        # Randomize the pose of all the added kitchenware
+        with rep_kitchenware_group:
             rep.modify.pose(position=rep.distribution.uniform((-6, -6, 0), (6, 12, 0)),
                             rotation=rep.distribution.uniform((0, 0, 0), (0, 0, 360)),
                             scale=rep.distribution.uniform((0.01, 0.01, 0.01), (0.01, 0.01, 0.01)))
