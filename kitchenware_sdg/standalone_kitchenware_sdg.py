@@ -54,6 +54,7 @@ ENV_URL = "/Isaac/Environments/Simple_Warehouse/warehouse.usd"
 
 import carb
 import yaml
+import time
 import omni
 import omni.usd
 from omni.isaac.nucleus import get_assets_root_path
@@ -74,9 +75,10 @@ from omni.isaac.core.utils.semantics import get_semantics
 KITCHEN_ASSETS_LIST_PATH = args.ws_dir + "/kitchen_asset_list.yaml"
 KITCHEN_ASSETS_LIST = yaml.load(open(KITCHEN_ASSETS_LIST_PATH), Loader=yaml.FullLoader)
 # append the workspace directory to the kitchenware asset paths
-KITCHEN_ASSETS_LIST = [args.ws_dir + "/" + kitchenware_path for kitchenware_path in KITCHEN_ASSETS_LIST]
+# KITCHEN_ASSETS_LIST['kitchenware_path'] = [os.path.join(args.ws_dir, asset_path) for asset_path in KITCHEN_ASSETS_LIST['kitchenware_path']]
+# # append `file://` to the asset paths
+# KITCHEN_ASSETS_LIST['kitchenware_path'] = ['file://' + asset_path for asset_path in KITCHEN_ASSETS_LIST['kitchenware_path']]
 print(f"KITCHEN_ASSETS_LIST: {KITCHEN_ASSETS_LIST}")
-exit()
 
 # The warehouse distractors which will be added to the scene and randomized
 DISTRACTORS_WAREHOUSE = 2 * ["/Isaac/Environments/Simple_Warehouse/Props/S_TrafficCone.usd",
@@ -247,7 +249,10 @@ def full_textures_list():
 
 
 def add_kitchenware():
-    rep_obj_list = [rep.create.from_usd(kitchenware_path, semantics=[("class", "kitchenware")], count=2) for kitchenware_path in KITCHEN_ASSETS_LIST]
+    rep_obj_list = [rep.create.from_usd(kitchenware_path, semantics=[("class", "kitchenware")], count=5) for kitchenware_path in KITCHEN_ASSETS_LIST['kitchenware_path']]
+    if not rep_obj_list:
+        print("Warning: No kitchenware assets found. Check KITCHEN_ASSETS_LIST['kitchenware_path'].")
+        return None
     rep_kitchenware_group = rep.create.group(rep_obj_list)
     return rep_kitchenware_group
 
@@ -312,10 +317,12 @@ def main():
             rep.randomizer.color(colors=rep.distribution.uniform((0, 0, 0), (1, 1, 1)))
 
         # Randomize the pose of all the added kitchenware
-        with rep_kitchenware_group:
-            rep.modify.pose(position=rep.distribution.uniform((-6, -6, 0), (6, 12, 0)),
-                            rotation=rep.distribution.uniform((0, 0, 0), (0, 0, 360)),
-                            scale=rep.distribution.uniform((0.01, 0.01, 0.01), (0.01, 0.01, 0.01)))
+        if rep_kitchenware_group is not None:
+            with rep_kitchenware_group:
+                rep.modify.pose(position=rep.distribution.uniform((-2, -2, 0), (2, 2, 0)),
+                                rotation=rep.distribution.uniform((0, 0, 0), (0, 0, 360)),
+                                # scale=rep.distribution.uniform((0.01, 0.01, 0.01), (0.01, 0.01, 0.01)))
+                                scale=rep.distribution.uniform((1, 1, 1), (1, 1, 1)))
 
         # Modify the pose of all the distractors in the scene
         with rep_distractor_group:
@@ -385,4 +392,5 @@ if __name__ == "__main__":
         traceback.print_exc()
     finally:
         simulation_app.close()
+
 

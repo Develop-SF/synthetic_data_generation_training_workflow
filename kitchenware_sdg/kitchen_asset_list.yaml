@@ -1,14 +1,17 @@
-kitchen_assets:
-  - ../assets/SNS_3DAssets/bottle_mesh/salad oil/cook_oil.usdc
-  - ../assets/SNS_3DAssets/bottle_mesh/seasoning/seasoning.usdc
-  - ../assets/SNS_3DAssets/bottle_mesh/soy sauce/soysauce.usdc
-  - ../assets/SNS_3DAssets/storage_table.usd
-  - ../assets/SNS_3DAssets/tableware/Collected_EastRural_Table/EastRural_Table.usd
-  - ../assets/SNS_3DAssets/tableware/Collected_EastRural_Table_ref/EastRural_Table.usd
-  - ../assets/SNS_3DAssets/tableware/Collected_Fork_Big/Fork_Big.usd
-  - ../assets/SNS_3DAssets/tableware/Collected_Fork_Small/Fork_Small.usd
-  - ../assets/SNS_3DAssets/tableware/Collected_Knife/Knife.usd
-  - ../assets/SNS_3DAssets/tableware/Collected_Spoon_Big/Spoon_Big.usd
-  - ../assets/SNS_3DAssets/tableware/Collected_Spoon_Small/Spoon_Small.usd
-  - ../assets/SNS_3DAssets/UtensilLadle.usd
-
+kitchenware_path:
+  # - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_cook_oil/cook_oil.usdc
+  # - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_seasoning/seasoning.usdc
+  # - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_soysauce/soysauce.usdc
+  # omniverse://localhost/Library/SNS_3DAssets_collect/Collected_sr_hand_ur10e_dual/sr_hand_ur10e_dual.usd
+  - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_grape_juice/grape_juice.usd
+  # - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_UtensilLadle/UtensilLadle.usdc
+  - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_wok_14in_flatten/wok_14in.usd
+  # - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_wok_14in/wok_14in.usd
+  # - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_Fork_Big/Fork_Big.usd
+  # - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_Fork_Small/Fork_Small.usd
+  # - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_Knife/Knife.usd
+  # - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_Spoon_Big/Spoon_Big.usd
+  # - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_Spoon_Small/Spoon_Small.usd
+  # - ../assets/SNS_3DAssets_collect/storage_table.usd
+  # - ../assets/SNS_3DAssets_collect/Collected_EastRural_Table/EastRural_Table.usd
+  # - ../assets/SNS_3DAssets_collect/Collected_EastRural_Table_ref/EastRural_Table.usd
