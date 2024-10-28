@@ -30,6 +30,7 @@ parser.add_argument("--headless", type=bool, default=False, help="Launch script 
 parser.add_argument("--height", type=int, default=544, help="Height of image")
 parser.add_argument("--width", type=int, default=960, help="Width of image")
 parser.add_argument("--num_frames", type=int, default=1000, help="Number of frames to record")
+parser.add_argument("--rt_subframes", type=int, default=10, help="Number of subframes for each frame to get better rendering quality")
 parser.add_argument("--distractors", type=str, default="warehouse", 
                     help="Options are 'warehouse' (default), 'additional' or None")
 parser.add_argument("--ws_dir", type=str, default=os.getcwd(), 
@@ -44,13 +45,16 @@ print(f'args: {args}')
 
 # This is the config used to launch simulation. 
 CONFIG = {"renderer": "RayTracedLighting", "headless": args.headless, 
-          "width": args.width, "height": args.height, "num_frames": args.num_frames}
+          "width": args.width, "height": args.height,
+          "num_frames": args.num_frames,
+          "rt_subframes": args.rt_subframes}
 
 simulation_app = SimulationApp(launch_config=CONFIG)
 
 
 ## This is the path which has the background scene in which objects will be added.
 ENV_URL = "/Isaac/Environments/Simple_Warehouse/warehouse.usd"
+KITCHEN_URL = "omniverse://192.168.22.214/ShenNongShi/SNS-Kitchen_Scene/Collected_sns_emily_wok/kitchen_scene.usd"
 
 import carb
 import yaml
@@ -66,7 +70,7 @@ import omni.replicator.core as rep
 
 from omni.isaac.core.utils.semantics import get_semantics
 
-
+from pxr import Usd, UsdGeom, Sdf
 
 # This is the location of the palletjacks in the simready asset library
 # PALLETJACKS = ["http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/DigitalTwin/Assets/Warehouse/Equipment/Pallet_Trucks/Scale_A/PalletTruckScale_A01_PR_NVD_01.usd",
@@ -203,16 +207,14 @@ def update_semantics(stage, keep_semantics=[]):
                     type_attr = sem.GetSemanticTypeAttr()
                     data_attr = sem.GetSemanticDataAttr()
 
-
-                    for semantic_class in keep_semantics:
                     # Check for our data classes needed for the model
-                        if data_attr.Get() == semantic_class:
-                            continue
-                        else:
-                            # remove semantics of all other prims
-                            prim.RemoveProperty(type_attr.GetName())
-                            prim.RemoveProperty(data_attr.GetName())
-                            prim.RemoveAPI(Semantics.SemanticsAPI, instance_name)
+                    if data_attr.Get() in keep_semantics:
+                        continue
+                    else:
+                        # remove semantics of all other prims
+                        prim.RemoveProperty(type_attr.GetName())
+                        prim.RemoveProperty(data_attr.GetName())
+                        prim.RemoveAPI(Semantics.SemanticsAPI, instance_name)
     
 
 # needed for loading textures correctly
@@ -248,11 +250,85 @@ def full_textures_list():
     return full_tex_list
 
 
-def add_kitchenware():
-    rep_obj_list = [rep.create.from_usd(kitchenware_path, semantics=[("class", "kitchenware")], count=5) for kitchenware_path in KITCHEN_ASSETS_LIST['kitchenware_path']]
+def add_static_kitchenware():
+    """Add fixed position kitchenware assets"""
+    stage = get_current_stage()
+    
+    fixed_assets = {
+        'wok': {
+            'position': (1.09759, -0.00701, 0.87748),
+            'rotation': (-3.77, -2.497, 121.597)
+        },
+        'ladle': {
+            'position': (1.03484, -0.47611, 0.98812),
+            'rotation': (0, -10, 0)
+        }
+    }
+    
+    for category, data in KITCHEN_ASSETS_LIST['kitchenware_path'].items():
+        if category in fixed_assets:
+            paths = data['paths']
+            scale_value = data['scale']
+            
+            print(f'Adding fixed position object: {category} to position {fixed_assets[category]["position"]} with rotation {fixed_assets[category]["rotation"]} and scale {scale_value}')
+            
+            fixed_prim_path = f"/World/fixed_{category}"
+            fixed_prim = stage.DefinePrim(fixed_prim_path, "Xform")
+            fixed_ref = fixed_prim.GetReferences()
+            fixed_ref.AddReference(paths[0])
+            
+            # Add semantics
+            sem = Semantics.SemanticsAPI.Apply(fixed_prim, "semantics")
+            sem.CreateSemanticTypeAttr("class")
+            sem.CreateSemanticDataAttr(category)
+            
+            xformable = UsdGeom.Xformable(fixed_prim)
+            
+            # Remove existing transform if any
+            for name in fixed_prim.GetPropertyNames():
+                if name == "xformOp:transform":
+                    fixed_prim.RemoveProperty(name)
+            
+            # Handle translation
+            if "xformOp:translate" in fixed_prim.GetPropertyNames():
+                translate_op = UsdGeom.XformOp(fixed_prim.GetAttribute("xformOp:translate"))
+            else:
+                translate_op = xformable.AddXformOp(UsdGeom.XformOp.TypeTranslate, UsdGeom.XformOp.PrecisionDouble, "")
+            
+            # Handle rotation
+            if "xformOp:rotateXYZ" in fixed_prim.GetPropertyNames():
+                rotate_op = UsdGeom.XformOp(fixed_prim.GetAttribute("xformOp:rotateXYZ"))
+            else:
+                rotate_op = xformable.AddXformOp(UsdGeom.XformOp.TypeRotateXYZ, UsdGeom.XformOp.PrecisionDouble, "")
+            
+            # Handle scale
+            if "xformOp:scale" in fixed_prim.GetPropertyNames():
+                scale_op = UsdGeom.XformOp(fixed_prim.GetAttribute("xformOp:scale"))
+            else:
+                scale_op = xformable.AddXformOp(UsdGeom.XformOp.TypeScale, UsdGeom.XformOp.PrecisionDouble, "")
+            
+            xformable.SetXformOpOrder([translate_op, rotate_op, scale_op])
+            
+            translate_op.Set(fixed_assets[category]['position'])
+            rotate_op.Set(fixed_assets[category]['rotation'])
+            scale_op.Set((scale_value, scale_value, scale_value))
+
+def add_dynamic_kitchenware():
+    """Add randomly positioned kitchenware assets"""
+    rep_obj_list = []
+    fixed_assets = {'wok', 'ladle'}  # Skip these as they're handled by static placement
+    
+    for category, data in KITCHEN_ASSETS_LIST['kitchenware_path'].items():
+        paths = data['paths']
+        scale_value = data['scale']
+        for path in paths:
+            obj = rep.create.from_usd(path, semantics=[("class", category)], count=5)
+            with obj:
+                rep.modify.pose(scale=(scale_value, scale_value, scale_value))
+            rep_obj_list.append(obj)
     if not rep_obj_list:
+        print("Warning: No kitchenware assets found for random placement.")
         print("Warning: No kitchenware assets found. Check KITCHEN_ASSETS_LIST['kitchenware_path'].")
-        return None
     rep_kitchenware_group = rep.create.group(rep_obj_list)
     return rep_kitchenware_group
 
@@ -287,54 +363,70 @@ def main():
     open_stage(prefix_with_isaac_asset_server(ENV_URL))
     stage = get_current_stage()
 
+    # Add the kitchen scene
+    print(f"Adding Kitchen Scene {KITCHEN_URL}")
+    kitchen_prim = stage.DefinePrim("/World/kitchen", "Xform")
+    kitchen_ref = kitchen_prim.GetReferences()
+    kitchen_ref.AddReference(KITCHEN_URL)
+
+    # Adjust the kitchen position and scale if needed
+    xform = UsdGeom.Xformable(kitchen_prim)
+    xform.AddTranslateOp().Set((0, 0, 0))  # Adjust position as needed
+    xform.AddScaleOp().Set((1, 1, 1))  # Adjust scale as needed
+    
     # Run some app updates to make sure things are properly loaded
     for i in range(100):
         if i % 10 == 0:
-            print(f"App uppdate {i}..")
+            print(f"App update {i}..")
         simulation_app.update()
 
 
     textures = full_textures_list()
-    rep_kitchenware_group = add_kitchenware()
+    
+    # Add both static and dynamic kitchenware
+    add_static_kitchenware()
+    rep_dynamic_kitchenware = add_dynamic_kitchenware()
     rep_distractor_group = add_distractors(distractor_type=args.distractors)
 
     # We only need labels for the kitchenware objects
-    update_semantics(stage=stage, keep_semantics=["kitchenware"])
+    update_semantics(stage=stage, keep_semantics=KITCHEN_ASSETS_LIST['kitchenware_path'].keys())
 
     # Create camera with Replicator API for gathering data
     cam = rep.create.camera(clipping_range=(0.1, 1000000))
 
     # trigger replicator pipeline
-    with rep.trigger.on_frame(max_execs=CONFIG["num_frames"], rt_subframes=10):
+    with rep.trigger.on_frame(max_execs=CONFIG["num_frames"], rt_subframes=CONFIG["rt_subframes"]):
 
         # Move the camera around in the scene, focus on the center of warehouse
         with cam:
-            rep.modify.pose(position=rep.distribution.uniform((-9.2, -11.8, 0.4), (7.2, 15.8, 4)),
-                            look_at=(0, 0, 0))
+            rep.modify.pose(position=rep.distribution.uniform((-4, -4, 1.2), (4, 4, 2)),
+                            # look_at=(0, 0, 0.8))
+                            look_at=rep.distribution.uniform((-1, -1, 0.4), (1, 1, 1.6)))
 
-        # Get the Kitchenware body mesh and modify its color
-        with rep.get.prims(path_pattern="SteerAxles"):
-            rep.randomizer.color(colors=rep.distribution.uniform((0, 0, 0), (1, 1, 1)))
+        # Get the Kitchenware metal mesh and modify its color
+        # with rep.get.prims(path_pattern="metal"):
+        #     rep.randomizer.color(colors=rep.distribution.uniform((0, 0, 0), (0.2, 0.2, 0.2)))
 
-        # Randomize the pose of all the added kitchenware
-        if rep_kitchenware_group is not None:
-            with rep_kitchenware_group:
-                rep.modify.pose(position=rep.distribution.uniform((-2, -2, 0), (2, 2, 0)),
-                                rotation=rep.distribution.uniform((0, 0, 0), (0, 0, 360)),
+        # Only randomize the dynamic kitchenware
+        if rep_dynamic_kitchenware is not None:
+            with rep_dynamic_kitchenware:
+                rep.modify.pose(position=rep.distribution.uniform((-2, -2, 0.4), (2, 2, 1.2)),
+                                rotation=rep.distribution.uniform((0, 0, 0), (180, 180, 360)))
                                 # scale=rep.distribution.uniform((0.01, 0.01, 0.01), (0.01, 0.01, 0.01)))
-                                scale=rep.distribution.uniform((1, 1, 1), (1, 1, 1)))
+                                # scale=rep.distribution.uniform((1, 1, 1), (1, 1, 1)))
 
         # Modify the pose of all the distractors in the scene
         with rep_distractor_group:
             rep.modify.pose(position=rep.distribution.uniform((-6, -6, 0), (6, 12, 0)),
                                 rotation=rep.distribution.uniform((0, 0, 0), (0, 0, 360)),
                                 scale=rep.distribution.uniform(1, 1.5))
-
+        
         # Randomize the lighting of the scene
         with rep.get.prims(path_pattern="RectLight"):
-            rep.modify.attribute("color", rep.distribution.uniform((0, 0, 0), (1, 1, 1)))
-            rep.modify.attribute("intensity", rep.distribution.normal(100000.0, 600000.0))
-            rep.modify.visibility(rep.distribution.choice([True, False, False, False, False, False, False]))
+            # rep.modify.attribute("color", rep.distribution.uniform((0, 0, 0), (1, 1, 1)))
+            rep.modify.attribute("color", rep.distribution.normal((0.5, 0.5, 0.5), (0.2, 0.2, 0.2)))
+            rep.modify.attribute("intensity", rep.distribution.normal(10000.0, 300000.0))
+            rep.modify.visibility(rep.distribution.choice([True, True, True, True, False, False, False]))
 
         # select floor material
         random_mat_floor = rep.create.material_omnipbr(diffuse_texture=rep.distribution.choice(textures),
@@ -368,7 +460,8 @@ def main():
 
     # use writer for bounding boxes, rgb and segmentation
     writer.initialize(output_dir=output_directory,
-                    omit_semantic_type=True,)
+                    omit_semantic_type=True,
+                    colorize_instance_segmentation=True)
 
 
     # attach camera render products to wrieter so that data is outputted
@@ -379,7 +472,6 @@ def main():
     # run rep pipeline
     run_orchestrator()
     simulation_app.update()
-
 
 
 if __name__ == "__main__":

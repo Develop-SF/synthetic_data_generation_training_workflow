@@ -1,17 +1,30 @@
 kitchenware_path:
-  # - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_cook_oil/cook_oil.usdc
-  # - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_seasoning/seasoning.usdc
-  # - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_soysauce/soysauce.usdc
-  # omniverse://localhost/Library/SNS_3DAssets_collect/Collected_sr_hand_ur10e_dual/sr_hand_ur10e_dual.usd
-  - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_grape_juice/grape_juice.usd
-  # - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_UtensilLadle/UtensilLadle.usdc
-  - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_wok_14in_flatten/wok_14in.usd
-  # - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_wok_14in/wok_14in.usd
-  # - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_Fork_Big/Fork_Big.usd
-  # - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_Fork_Small/Fork_Small.usd
-  # - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_Knife/Knife.usd
-  # - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_Spoon_Big/Spoon_Big.usd
-  # - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_Spoon_Small/Spoon_Small.usd
-  # - ../assets/SNS_3DAssets_collect/storage_table.usd
-  # - ../assets/SNS_3DAssets_collect/Collected_EastRural_Table/EastRural_Table.usd
-  # - ../assets/SNS_3DAssets_collect/Collected_EastRural_Table_ref/EastRural_Table.usd
+  bottle:
+    paths:
+      - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_cook_oil/cook_oil.usdc
+      - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_seasoning/seasoning.usdc
+      - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_soysauce/soysauce.usdc
+      # - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_grape_juice/grape_juice.usd
+    scale: 1.0
+  ladle:
+    paths:
+      - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_UtensilLadle/UtensilLadle.usdc
+    scale: 0.01
+  wok:
+    paths:
+      - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_wok_14in/wok_14in.usd
+    scale: 1.0
+  # table:
+  #   paths:
+  #     - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_EastRural_Table/EastRural_Table.usd
+  #     - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_EastRural_Table_ref/EastRural_Table.usd
+  #     - omniverse://localhost/Library/SNS_3DAssets_collect/storage_table.usd
+  #   scale: 0.01
+  tableware:
+    paths:
+      - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_Fork_Big/Fork_Big.usd
+      - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_Fork_Small/Fork_Small.usd
+      - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_Knife/Knife.usd
+      - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_Spoon_Big/Spoon_Big.usd
+      - omniverse://localhost/Library/SNS_3DAssets_collect/Collected_Spoon_Small/Spoon_Small.usd
+    scale: 0.01
