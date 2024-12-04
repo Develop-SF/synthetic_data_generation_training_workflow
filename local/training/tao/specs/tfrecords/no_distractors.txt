@@ -1,5 +1,5 @@
 kitti_config {
-  root_directory_path: "/workspace/tao-experiments/palletjack_sdg/palletjack_data/no_distractors/Camera"
+  root_directory_path: "/workspace/tao-experiments/kitchenware_sdg/kitchenware_data/no_distractors/Camera"
   image_dir_name: "rgb"
   label_dir_name: "object_detection"
   image_extension: ".png"
@@ -8,4 +8,4 @@ kitti_config {
   val_split: 10
   num_shards: 10
 }
-image_directory_path: "/workspace/tao-experiments/palletjack_sdg/palletjack_data/no_distractors/Camera"
+image_directory_path: "/workspace/tao-experiments/kitchenware_sdg/kitchenware_data/no_distractors/Camera"

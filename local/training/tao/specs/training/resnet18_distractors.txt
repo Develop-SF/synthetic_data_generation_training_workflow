@@ -1,25 +1,40 @@
 random_seed: 42
 dataset_config {
   data_sources {
-    tfrecords_path: "/workspace/tao-experiments/local/training/tao/tfrecords/distractors_warehouse/*"
-    image_directory_path: "/workspace/tao-experiments/palletjack_sdg/palletjack_data/distractors_warehouse/Camera"
+    tfrecords_path: "/workspace/tao-experiments/local/training/tao/tfrecords/distractors_kitchen/*"
+    image_directory_path: "/workspace/tao-experiments/kitchenware_sdg/kitchenware_data/distractors_kitchen/Camera"
   }
   
   data_sources {
     tfrecords_path: "/workspace/tao-experiments/local/training/tao/tfrecords/distractors_additional/*"
-    image_directory_path: "/workspace/tao-experiments/palletjack_sdg/palletjack_data/distractors_additional/Camera"
+    image_directory_path: "/workspace/tao-experiments/kitchenware_sdg/kitchenware_data/distractors_additional/Camera"
   }
   
   data_sources {
     tfrecords_path: "/workspace/tao-experiments/local/training/tao/tfrecords/no_distractors/*"
-    image_directory_path: "/workspace/tao-experiments/palletjack_sdg/palletjack_data/no_distractors/Camera"
+    image_directory_path: "/workspace/tao-experiments/kitchenware_sdg/kitchenware_data/no_distractors/Camera"
   }
   
   image_extension: "png"
   
   target_class_mapping {
-    key: "palletjack"
-    value: "palletjack"
+    key: "bottle"
+    value: "bottle"
+  }
+  
+  target_class_mapping {
+    key: "ladle"
+    value: "ladle"
+  }
+  
+  target_class_mapping {
+    key: "wok"
+    value: "wok"
+  }
+  
+  target_class_mapping {
+    key: "tableware"
+    value: "tableware"
   }
 
  validation_fold: 0
@@ -51,7 +66,46 @@ augmentation_config {
 
 postprocessing_config {
   target_class_config {
-    key: "palletjack"
+    key: "bottle"
+    value {
+      clustering_config {
+        clustering_algorithm: DBSCAN
+        dbscan_confidence_threshold: 0.9
+        coverage_threshold: 0.00499999988824
+        dbscan_eps: 0.15000000596
+        dbscan_min_samples: 0.0500000007451
+        minimum_bounding_box_height: 20
+      }
+    }
+  }
+  target_class_config {
+    key: "ladle"
+    value {
+      clustering_config {
+        clustering_algorithm: DBSCAN
+        dbscan_confidence_threshold: 0.9
+        coverage_threshold: 0.00499999988824
+        dbscan_eps: 0.15000000596
+        dbscan_min_samples: 0.0500000007451
+        minimum_bounding_box_height: 20
+      }
+    }
+  }
+  target_class_config {
+    key: "wok"
+    value {
+      clustering_config {
+        clustering_algorithm: DBSCAN
+        dbscan_confidence_threshold: 0.9
+        coverage_threshold: 0.00499999988824
+        dbscan_eps: 0.15000000596
+        dbscan_min_samples: 0.0500000007451
+        minimum_bounding_box_height: 20
+      }
+    }
+  }
+  target_class_config {
+    key: "tableware"
     value {
       clustering_config {
         clustering_algorithm: DBSCAN
@@ -84,11 +138,50 @@ evaluation_config {
   validation_period_during_training: 10
   first_validation_epoch: 5
   minimum_detection_ground_truth_overlap {
-    key: "palletjack"
+    key: "bottle"
+    value: 0.5
+  }
+  minimum_detection_ground_truth_overlap {
+    key: "ladle"
+    value: 0.5
+  }
+  minimum_detection_ground_truth_overlap {
+    key: "wok"
+    value: 0.5
+  }
+  minimum_detection_ground_truth_overlap {
+    key: "tableware"
     value: 0.5
   }
   evaluation_box_config {
-    key: "palletjack"
+    key: "bottle"
+    value {
+      minimum_height: 25
+      maximum_height: 9999
+      minimum_width: 25
+      maximum_width: 9999
+    }
+  }
+  evaluation_box_config {
+    key: "ladle"
+    value {
+      minimum_height: 25
+      maximum_height: 9999
+      minimum_width: 25
+      maximum_width: 9999
+    }
+  }
+  evaluation_box_config {
+    key: "wok"
+    value {
+      minimum_height: 25
+      maximum_height: 9999
+      minimum_width: 25
+      maximum_width: 9999
+    }
+  }
+  evaluation_box_config {
+    key: "tableware"
     value {
       minimum_height: 25
       maximum_height: 9999
@@ -101,7 +194,52 @@ evaluation_config {
 
 cost_function_config {
   target_classes {
-    name: "palletjack"
+    name: "bottle"
+    class_weight: 1.0
+    coverage_foreground_weight: 0.0500000007451
+    objectives {
+      name: "cov"
+      initial_weight: 1.0
+      weight_target: 1.0
+    }
+    objectives {
+      name: "bbox"
+      initial_weight: 10.0
+      weight_target: 1.0
+    }
+  }
+  target_classes {
+    name: "ladle"
+    class_weight: 1.0
+    coverage_foreground_weight: 0.0500000007451
+    objectives {
+      name: "cov"
+      initial_weight: 1.0
+      weight_target: 1.0
+    }
+    objectives {
+      name: "bbox"
+      initial_weight: 10.0
+      weight_target: 1.0
+    }
+  }
+  target_classes {
+    name: "wok"
+    class_weight: 1.0
+    coverage_foreground_weight: 0.0500000007451
+    objectives {
+      name: "cov"
+      initial_weight: 1.0
+      weight_target: 1.0
+    }
+    objectives {
+      name: "bbox"
+      initial_weight: 10.0
+      weight_target: 1.0
+    }
+  }
+  target_classes {
+    name: "tableware"
     class_weight: 1.0
     coverage_foreground_weight: 0.0500000007451
     objectives {
@@ -153,7 +291,25 @@ training_config {
     scalar_logging_frequency: 10
     infrequent_logging_frequency: 5
     target_class_config {
-      key: "palletjack"
+      key: "bottle"
+      value: {
+        coverage_threshold: 0.005
+      }
+    }
+    target_class_config {
+      key: "ladle"
+      value: {
+        coverage_threshold: 0.005
+      }
+    }
+    target_class_config {
+      key: "wok"
+      value: {
+        coverage_threshold: 0.005
+      }
+    }
+    target_class_config {
+      key: "tableware"
       value: {
         coverage_threshold: 0.005
       }
@@ -164,7 +320,37 @@ training_config {
 
 bbox_rasterizer_config {
   target_class_config {
-    key: "palletjack"
+    key: "bottle"
+    value {
+      cov_center_x: 0.5
+      cov_center_y: 0.5
+      cov_radius_x: 1.0
+      cov_radius_y: 1.0
+      bbox_min_radius: 1.0
+    }
+  }
+  target_class_config {
+    key: "ladle"
+    value {
+      cov_center_x: 0.5
+      cov_center_y: 0.5
+      cov_radius_x: 1.0
+      cov_radius_y: 1.0
+      bbox_min_radius: 1.0
+    }
+  }
+  target_class_config {
+    key: "wok"
+    value {
+      cov_center_x: 0.5
+      cov_center_y: 0.5
+      cov_radius_x: 1.0
+      cov_radius_y: 1.0
+      bbox_min_radius: 1.0
+    }
+  }
+  target_class_config {
+    key: "tableware"
     value {
       cov_center_x: 0.5
       cov_center_y: 0.5

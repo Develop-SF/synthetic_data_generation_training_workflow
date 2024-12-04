@@ -44,7 +44,9 @@ args, unknown_args = parser.parse_known_args()
 print(f'args: {args}')
 
 # This is the config used to launch simulation. 
-CONFIG = {"renderer": "RayTracedLighting", "headless": args.headless, 
+CONFIG = {"renderer": "RayTracedLighting",
+        #   "samples_per_pixel_per_frame": 64,
+          "headless": args.headless, 
           "width": args.width, "height": args.height,
           "num_frames": args.num_frames,
           "rt_subframes": args.rt_subframes}
